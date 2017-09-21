@@ -149,8 +149,115 @@ console.log(bjz); //输出八进制对应的十进制数
 - 安全整数判断 Number.isSafeInteger(x); 【不在安全整数范围输出false】
 
 # 7 数组处理①
-## 7.1 数组
+## 7.1 JSON数组格式转换 Array.from()
+```js
+let json = {
+    "0":"first",
+    "1":"second",
+    "2":"third",
+    length:3
+}
+// TODO: 利用Array.from() 将上述样式的json数据转换成数组格式
+console.log(Array.from(json));
+```
+## 7.2 文本或者变量转换成数组 Array.of()
+```js
+// 文本
+let arr = Array.of(3,4,5,6);
+console.log(arr); // [3,4,5,6]
+// 字符串
+let arr = Array.of('first','second','third','fourth');
+console.log(arr); //['first','second','third','fourth']
+```
+## 查找数组元素 arr.find()
+```js
+let arr=[1,2,3,4,5,40,7,8,9];
+console.log(arr.find(function(value,index,arr){
+    return value > 5;
+}))
+// 输出为40
 
+/** 
+* find方法中的匿名函数的参数值
+* value：当前查找的值
+* index: 表示当前查找的数组索引
+* arr: 表示当前数组
+*/
+```
+# 8 数组处理②
+## 8.1 数组填充 arr.fill()
+```js
+let arr = [1,2,4,5];
+console.log(arr.fill(3,2,5));
+// 输出为[1,2,3,3,3,4,5,]
+// 将数组索引2到索引5的位置用3填充
+```
+## 8.2 数组遍历
+### 8.2.1 for...of循环
+```js
+let arr = ['first','second','third'];
+for (let item of arr){
+    console.log(item);
+} 
+// 输出为first second third
+### 8.2.2 for...of数组索引
+let arr = ['first','second','third'];
+for(let index of arr.keys()){
+    console.log(index);
+}
+// 输出为0 1 2
+### 8.2.3 同时输出数组的内容和索引
+let arr = ['first','second','third'];
+for(let [index,val] of arr.entries()){
+    console.log(index,val);
+}
+## 8.2 entries() 实例方法
+entries()方法生成迭代（Iteration）形式的数组
+let arr = ['first','second','third'];
+let list = arr.entries();
+console.log(list.next().value); // [0,'first'];
+console.log(list.next().value); // [1,'second'];
+console.log(list.next().value); // [2,'third'];
+```
+# 9 箭头函数及拓展
+# 9.1 主动抛出错误
+ES6的函数中可设置默认参数
+```js
+function add(a,b=1){
+   
+    if(a == 0){
+        throw new Error('This is error')
+    }
+     return a+b;
+}
+ 
+console.log(add(0));
 
-
-
+```
+## 9.2 函数中的严谨模式
+```js
+function add(a,b=1){
+    'use strict'
+    if(a == 0){
+        throw new Error('This is error');
+    }
+     return a+b;
+}
+ 
+console.log(add(1));
+```
+## 9.3 获得传递参数个数
+```js
+function add(a,b=1){
+    'use strict'
+    if(a == 0){
+        throw new Error("This is arror");
+    }else{
+        return a + b;
+    }
+}
+// 获取传递参数个数
+console.log(add.length); // => 2
+// 去掉函数中的严谨模式后，获取参数个数为
+console.log(add.length); // => 1
+```
