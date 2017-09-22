@@ -192,7 +192,8 @@ console.log(arr.fill(3,2,5));
 // 输出为[1,2,3,3,3,4,5,]
 // 将数组索引2到索引5的位置用3填充
 ```
-## 8.2 数组遍历
+## 8.2 数组遍历 
+
 ### 8.2.1 for...of循环
 ```js
 let arr = ['first','second','third'];
@@ -200,19 +201,25 @@ for (let item of arr){
     console.log(item);
 } 
 // 输出为first second third
+```
 ### 8.2.2 for...of数组索引
+```js
 let arr = ['first','second','third'];
 for(let index of arr.keys()){
     console.log(index);
 }
 // 输出为0 1 2
+```
 ### 8.2.3 同时输出数组的内容和索引
+```js
 let arr = ['first','second','third'];
 for(let [index,val] of arr.entries()){
     console.log(index,val);
 }
+```
 ## 8.2 entries() 实例方法
 entries()方法生成迭代（Iteration）形式的数组
+```js
 let arr = ['first','second','third'];
 let list = arr.entries();
 console.log(list.next().value); // [0,'first'];
@@ -260,4 +267,258 @@ function add(a,b=1){
 console.log(add.length); // => 2
 // 去掉函数中的严谨模式后，获取参数个数为
 console.log(add.length); // => 1
+```
+## 9.4 箭头函数
+```js
+// TODO: 如果单纯一个语句时，{}括号可以省略
+var add = (a,b=1) => a+b;
+console.log(add(1)) // 输出为2
+// TODO: 方法体内如果是两句话，那就需要在方法体外边加上{}括号
+var add = (a,b=1) => {
+    console.log("箭头函数代码中两句话加括号");
+    return a + b;
+}
+console.log(add(1));
+```
+# 10 函数解构和数组补漏
+## 10.1 函数解构
+### 10.1.1 对象的函数解构
+```js
+let json = {
+    a : "first",
+    b : "second"
+}
+// FIXME: 这里有一个坑！！！ 函数体中参数对象 用等于号
+var fun = ({a,b="none"}) => console.log(a,b);
+fun(json);
+```
+### 10.1.2 数组的函数解构
+```js
+let arr = ['first','second','third'];
+var fun = (a,b,c) => {
+    console.log(a,b,c);
+}
+fun(...arr);
+
+```
+## 10.2 in的用法
+in是用来判断对象或者数组中是否存在某个值的。【键或索引】
+### 10.2.1 对象判断
+```js
+let obj = {
+    a:"first",
+    b:"second"
+}
+console.log("a" in obj);  // true
+console.log("c" in obj);  // false
+```
+### 10.2.2 数组判断
+```js
+let arr=[,,,,,];
+console.log(0 in arr); //false
+ 
+let arr1=['first','second'];
+console.log(0 in arr1);  // true
+```
+## 10.3 数组的遍历方法
+- forEach()
+```js
+let arr = ['first','second','third'];
+arr.forEach((val,index) => console.log(index,val));
+// forEach循环的特点是会自动省略为空的数组元素
+```
+- filter()
+```js
+let arr = ['first','second','third'];
+arr.filter(val => console.log(val));
+```
+- some()
+```js
+let arr = ['first','second','third'];
+arr.some(val => console.log(val));
+```
+- map()
+```js
+let arr = ['first','second','third'];
+arr.map(val => console.log(val));
+// map还有替换的功能
+arr.map(val => "none"); 
+// 将数组全部替换成none
+```
+## 10.4 数组转换成字符串
+- join()
+```js
+let arr = ['first','second','third'];
+console.log(arr.join("|"));
+// join() 方法就是在数组元素中间，加一些间隔
+```
+- toString()
+```js
+let arr = ['first','second','third'];
+console.log(arr.toString());
+```
+# 11 ES6中的对象
+## 11.1 对象赋值
+```js
+let name = "name";
+let skill = "skill";
+var obj = {name,skill};
+console.log(obj);
+```
+## 11.2 对象Key值构建
+```js
+let key = "skill";
+var obj = {
+    [key]:"web"
+}
+console.log(obj.skill);
+// TODO: 我们在后台取了一个key值，然后可以用[ ]的形式，进行对象的构建
+```
+## 11.3 自定义对象方法
+```js
+var obj = {
+    add:(a,b)=>a+b
+}
+console.log(obj.add(1,2)); //3
+```
+## 11.4 对象比较 Object.is()
+```js
+var obj1 = {name:'jspang'};
+var obj2 = {name:'jspang'};
+console.log(obj1.name === obj2.name);//true
+console.log(Object.is(obj1.name,obj2.name)); //true
+// TODO: * ===表示同值相等，is()为严格相等
+```
+## 11.5 合并对象 Object.assign()
+```js
+let a = {a:'first'};
+let b = {b:'second'};
+let c = {c:'third'};
+console.log(Object.assign(a,b,c));
+```
+# 12 Symbol在对象中的作用
+## 12.1 声明Symbol()
+```js
+var a = Symbol();
+console.log(typeof(a)); // 数据类型为undefined
+```
+## 12.2 Symbol的打印
+```js
+var g = Symbol('pony');
+console.log(g); // 输出为红色的 Symbol('pony')
+console.log(g.toString()); // 输出为黑色的 Symbol('pony')
+```
+## 12.3 Symbol在对象中的应用
+```js
+var pony = Symbol();
+var obj = {
+    [pony]:"Pony"
+}
+console.log(obj[pony]); // 输出为Pony
+obj[pony]= "Super";
+console.log(obj[pony]); // 输出为Super                                                                
+```
+## 12.4 Symbol对象元素的保护作用
+在对象中有很多值，但是循环输出时，并不希望全部输出，那就可以使用Symbol进行保护
+```js
+// TODO: 没有进行保护的写法
+var obj = {
+    name:"Pony",
+    skill:"WEB",
+    age:18
+}
+for(let item in obj){
+    console.log(obj[item]);
+}
+// 依次输出为Pony WEB 18 没有进行SymBol保护
+// TODO: 使用Symbol进行循环保护的写法
+var obj = {
+    name: "Pony",
+    skill:"WEB"
+}
+let age = Symbal();
+obj[age] = 18;
+for(let item in obj){
+    console.log(obj[item]); // 依次输出为Pony、 WEB 对于进行保护的值不予循环输出
+}
+console.log(obj);  // 输出为 {name:"Pony",skill:"WEB",age:18}
+```
+# 13 Set和WeakSet数据结构
+Set的数据结构是以数组的形式构建的
+## 13.1 Set的声明
+```js
+let setArr = new Set(['pony','web',18]);
+console.log(setArr); // Set(3) {"pony","web",18} 
+```
+* Set 和 Array 的区别在于Set不允许内部有重复的值，如果有只显示一个，相当于去重。
+* 虽然Set很像数组，但是他们不是数组
+## 13.2 Set值的增删改查
+- 追加add
+```js
+let setArr = new Set(['pony','web',18]);
+console.log(setArr);
+ 
+setArr.add('前端职场');
+console.log(setArr);
+```
+- 删除delete 
+```js
+let setArr = new Set(['pony','web',18]);
+console.log(setArr);
+ 
+setArr.add('前端职场');
+console.log(setArr);
+
+setArr.delete('前端职场');
+console.log(setArr);
+```
+- 查找has  
+
+用has进行值的查找，返回的是true或者false
+```js
+let setArr = new Set(['pony','web',18]);
+console.log(setArr.has('pony')); // true
+```
+- 删除clear
+```js
+let setArr = new Set(['pony','web',18]);
+console.log(setArr);
+setArr.clear();
+console.log(setArr); // 输出为Set(0) Set总的内容已清空 
+```
+## 13.3 Set的循环
+```js
+// TODO: for...of 循环
+let setArr = new Set(['pony','web',18]);
+for(let item of setArr){
+    console.log(item);
+}
+// TODO: size 属性
+console.log(setArr.size);  // size 属性可以获得Set值的数量
+// TODO: forEach循环
+setArr.forEach((value) => console.log(value)); // forEach循环
+```
+## 13.4 WeakSet的声明
+```js
+let weakObj = new WeakSet();
+let obj = {name:"pony",sex:"male"};
+weakObj.add(obj);
+console.log(weakObj);
+```
+- 如果直接在new的时候就放入值，会报错
+- WeakSet里的值同样不允许重复
+- WeakSet的传入值必须是对象
+# 14 map数据结构
+## 14.1 JSON 和 Map 格式的对比
+```js
+// TODO: JSON 数据格式
+let json = {
+    name:'pony',
+    sex:'male'
+}
+console.log(json.name);
+// Map 数据格式
+var map = new Map();
+map.set(json,'iam');
+// FIXME: Map数据格式是一种特殊的键值对，key可以为数组对象字符串，value同样可以为数组对象或者字符串
 ```
