@@ -34,8 +34,8 @@ babel src/index.js -o dist/index.js
 
 # 2 变量三种声明方式
 - var：它是variable的简写，可以理解成变量的意思。var 是全局声明的意思
-- let：它在英文中是“让”的意思，也可以理解为一种声明的意思。 let 只在区块内起作用，外部不可调用
-- const：它在英文中也是常量的意思，在ES6也是用来声明常量的，常量你可以简单理解为不变的量。
+- let：它在英文中是“让”的意思，也可以理解为一种声明的意思。只在声明所在的块级作用域内有效。 let 只在区块内起作用，外部不可调用,let不可在块级作用域内重复声明
+- const：它在英文中也是常量的意思，在ES6也是用来声明常量的，常量你可以简单理解为不变的量。只在声明所在的块级作用域内有效。
 
 # 3 变量的解构赋值
 ## 3.1 数组的解构赋值
@@ -274,12 +274,22 @@ console.log(add.length); // => 1
 var add = (a,b=1) => a+b;
 console.log(add(1)) // 输出为2
 // TODO: 方法体内如果是两句话，那就需要在方法体外边加上{}括号
+// 由于大括号被解释为代码块，所以如果箭头函数直接返回一个对象，必须在对象外面加上括号，否则会报错。
 var add = (a,b=1) => {
     console.log("箭头函数代码中两句话加括号");
     return a + b;
 }
 console.log(add(1));
 ```
+### **箭头使用注意点** 
+* （1）函数体内的this对象，就是定义时所在的对象，而不是使用时所在的对象。箭头函数没有this
+
+* （2）不可以当作构造函数，也就是说，不可以使用new命令，否则会抛出一个错误。
+
+* （3）不可以使用arguments对象，该对象在函数体内不存在。如果要用，可以用 rest 参数代替。
+
+* （4）不可以使用yield命令，因此箭头函数不能用作 Generator 函数。
+
 # 10 函数解构和数组补漏
 ## 10.1 函数解构
 ### 10.1.1 对象的函数解构
@@ -420,6 +430,7 @@ console.log(obj[pony]); // 输出为Super
 ```
 ## 12.4 Symbol对象元素的保护作用
 在对象中有很多值，但是循环输出时，并不希望全部输出，那就可以使用Symbol进行保护
+- **Symbol函数的参数只是表示对当前 Symbol 值的描述，因此相同参数的Symbol函数的返回值是不相等的。** 
 ```js
 // TODO: 没有进行保护的写法
 var obj = {
@@ -522,3 +533,300 @@ var map = new Map();
 map.set(json,'iam');
 // FIXME: Map数据格式是一种特殊的键值对，key可以为数组对象字符串，value同样可以为数组对象或者字符串
 ```
+## 14.2 map的增删查
+- 取值get
+```js
+console.log(Map.get(json)); // 取json对应的值
+```
+- 删除delete
+```js
+map.delete(json);
+console.log(map);
+```
+- size属性
+```js
+console.log(map.size);
+```
+- 查找是否存在has
+```js
+console.log(map.has('pony')); //true
+```
+- 清除所有元素clear
+```js
+map.clear();
+```
+# 15 用Proxy进行预处理
+**什么是钩子函数？**
+> 当我们在操作一个对象或者方法时会有几种动作，比如： 在运行函数前初始化一些数据，在改变对象之后做一些处理。 
+
+**Proxy的存在？**
+> Proxy的存在就可以让我们给函数加上钩子函数，简单来说就是函数和对象的生命周期函数
+
+- 声明Proxy
+```js
+new Proxy({},{});
+// 第一个{}相当于我们的主体
+// 第二个{}是Proxy代码处理区，相当于写钩子函数的地方
+```
+```js
+// 将对象写成Proxy形式 get属性
+// get属性是在你得到某对象属性值时预处理的方法，他接受三个参数
+
+// target：得到的目标值
+// key：目标的key值，相当于对象的属性
+// property：这个不太常用，用法还在研究中，还请大神指教
+var pro = new Proxy({
+    add:(val)=>{
+        return val+10
+    },
+    name:"pony"
+    },{
+    get:(target,key,property)=>{
+        console.log("come in Get");
+        return target[key];
+    }
+})
+
+console.log(pro.name); //name
+```
+```js
+// 将对象写成Proxy形式 set属性
+// set属性是指你要改变Proxy属性值时，进行的预先处理。接受四个参数
+// target:目标值。
+// key：目标的Key值。
+// value：要改变的值。
+// receiver：改变前的原始值。
+var pro = new Proxy({
+        add:(val)=>{
+            return val + 10
+        },
+        name:"pony"
+    },{
+        get:(target,key,receiver) => {
+            console.log("come in get");
+            return target[key];
+        },
+        set:(target,key,value,receiver) => {
+            console.log("come in set");
+            return target[key] = value;
+        }
+});
+console.log(pro.name);
+pro.name = "pro";
+console.log(pro.name);
+// 输出如下
+/*
+come in get
+pony
+come in set
+come in get
+pro
+*/
+```
+- apply的使用
+**apply的作用是调用内部的方法，它使用在方法体是一个匿名函数时**
+```js
+let target = function () {
+    return 'I am JSPang';
+};
+var handler = {
+    apply(target, ctx, args) {
+        console.log('do apply');
+        return Reflect.apply(...arguments);
+    }
+}
+
+var pro = new Proxy(target, handler);
+
+console.log(pro());
+``` 
+# 16 promise对象的使用
+Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject。它们是两个函数，由 JavaScript 引擎提供，不用自己部署。
+
+resolve函数的作用是，将Promise对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去；<br>
+reject函数的作用是，将Promise对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
+
+Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数。
+```js
+promise.then(function(value) {
+  // success
+}, function(error) {
+  // failure
+});
+```
+then方法可以接受两个回调函数作为参数。 <br>
+第一个回调函数是Promise对象的状态变为resolved时调用， <br>
+第二个回调函数是Promise对象的状态变为rejected时调用。 <br>
+其中，第二个函数是可选的，不一定要提供。这两个函数都接受Promise对象传出的值作为参数。 
+
+```js
+let state=1;
+ 
+function step1(resolve,reject){
+    console.log('1.开始-洗菜做饭');
+    if(state==1){
+        resolve('洗菜做饭--完成');
+    }else{
+        reject('洗菜做饭--出错');
+    }
+}
+ 
+ 
+function step2(resolve,reject){
+    console.log('2.开始-坐下来吃饭');
+    if(state==1){
+        resolve('坐下来吃饭--完成');
+    }else{
+        reject('坐下来吃饭--出错');
+    }
+}
+ 
+ 
+function step3(resolve,reject){
+    console.log('3.开始-收拾桌子洗完');
+     if(state==1){
+        resolve('收拾桌子洗完--完成');
+    }else{
+        reject('收拾桌子洗完--出错');
+    }
+}
+ 
+new Promise(step1).then(function(val){
+    console.log(val); // 这段代码指定输出 resolve 和 reject 函数中的内容
+    return new Promise(step2);
+ 
+}).then(function(val){
+     console.log(val);
+    return new Promise(step3);
+}).then(function(val){
+    console.log(val);
+    return val;
+});
+```
+# 17 class类的使用
+- 类的使用
+```js
+class Coder{
+    name(val){
+        console.log(val);
+    }
+}
+ 
+let pony= new Coder;
+pony.name('pony');
+```
+- 类的传参
+```js
+class Coder{
+    name(val){
+        console.log(val);
+        return val;
+    }
+    skill(val){
+        console.log(this.name('pony')+':'+'Skill:'+val);
+    }
+    // 两个方法中间不要写逗号，这里的this指类本身
+    // constructor( )进行传参。传递参数后可以直接使用this.xxx进行调用。
+    constructor(a,b){
+        this.a=a;
+        this.b=b;
+    }
+ 
+    add(){
+        return this.a+this.b;
+    }
+}
+ 
+let pony=new Coder(1,2);
+pony.skill('web');
+console.log(pony.add());
+```
+- 类的继承
+```js
+class child extends Coder{
+ 
+}
+ 
+let ponychild=new child;
+ponychild.name('ponychild');
+```
+# 18 模块化操作
+- **export :负责进行模块化，也是模块的输出。**
+- **import : 负责把模块引，也是模块的引入操作。**
+## 18.1 export的用法
+export可以让我们把变量，函数，对象进行模块化，提供外部调用接口，让外部进行引用
+```js
+// test.js
+export var a = "pony";
+// index.js 中 import 形式引入
+import {a} from 'test.js'
+console.log(a);
+// 这就是一个最简单的模块的输出和引入
+```
+## 18.2 多变量的输出
+```js
+// 将多个变量进行模块化输出，将他们包装成对象
+var a = "p";
+var b = "o";
+var c = "n";
+
+export {a,b,c};
+```
+## 18.3 函数的模块化输出
+```js
+export function add(a,b){
+    return a + b;
+}
+```
+## 18.4 as的用法
+```js
+var a = "p";
+var b = "o";
+var c = "n";
+
+export {
+   x as a,
+   y as b,
+   z as c
+};
+```
+## 18.5 export default的使用
+```js
+// test.js
+export default var a='jspang';
+// index.js 中 import 形式引入
+import str from './temp';
+```
+
+# 19 其他
+- **对象简写**
+```js
+function f(x, y) {
+  return {x, y};
+}
+
+// 等同于
+
+function f(x, y) {
+  return {x: x, y: y};
+}
+
+f(1, 2) // Object {x: 1, y: 2}
+```
+- **方法简写**
+```js
+var o = {
+  method() {
+    return "Hello!";
+  }
+};
+
+// 等同于
+
+var o = {
+  method: function() {
+    return "Hello!";
+  }
+};
+```
+
