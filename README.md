@@ -627,7 +627,7 @@ pro
 **apply的作用是调用内部的方法，它使用在方法体是一个匿名函数时**
 ```js
 let target = function () {
-    return 'I am JSPang';
+    return 'I am Pony';
 };
 var handler = {
     apply(target, ctx, args) {
@@ -641,12 +641,12 @@ var pro = new Proxy(target, handler);
 console.log(pro());
 ``` 
 # 16 promise对象的使用
-Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject。它们是两个函数，由 JavaScript 引擎提供，不用自己部署。
+>Promise构造函数接受一个函数作为参数，该函数的两个参数分别是resolve和reject。它们是两个函数，由 JavaScript 引擎提供，不用自己部署。
 
-resolve函数的作用是，将Promise对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去；<br>
-reject函数的作用是，将Promise对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
+>resolve函数的作用是，将Promise对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去；<br>
+>reject函数的作用是，将Promise对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
 
-Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数。
+>Promise实例生成以后，可以用then方法分别指定resolved状态和rejected状态的回调函数。
 ```js
 promise.then(function(value) {
   // success
@@ -654,10 +654,12 @@ promise.then(function(value) {
   // failure
 });
 ```
-then方法可以接受两个回调函数作为参数。 <br>
+>then方法可以接受两个回调函数作为参数。 <br>
 第一个回调函数是Promise对象的状态变为resolved时调用， <br>
 第二个回调函数是Promise对象的状态变为rejected时调用。 <br>
-其中，第二个函数是可选的，不一定要提供。这两个函数都接受Promise对象传出的值作为参数。 
+其中，第二个函数是可选的，不一定要提供。这两个函数都接受Promise对象传出的值作为参数。 <br>
+**Promise 的状态一旦改变，就永久保持该状态**
+
 
 ```js
 let state=1;
@@ -702,6 +704,30 @@ new Promise(step1).then(function(val){
     console.log(val);
     return val;
 });
+```
+**示例代码**
+```js
+var promise = new Promise((resolve,reject)=>{
+   setTimeout(()=>console.log('a'),5000);
+  if(false){
+    resolve("异步操作成功");   
+  }else{
+    reject("异步操作失败");
+  }
+})
+
+promise.then((val) =>{
+   console.log(val);
+}).catch((val) =>{
+  console.log(val);
+})
+
+// 等同于
+promise.then((val) =>{
+   console.log(val);
+},(val) =>{
+  console.log(val);
+})
 ```
 # 17 class类的使用
 - 类的使用
@@ -752,7 +778,25 @@ ponychild.name('ponychild');
 ```
 # 18 模块化操作
 - **export :负责进行模块化，也是模块的输出。**
-- **import : 负责把模块引，也是模块的引入操作。**
+- **import : 负责把模块引，也是模块的引入操作。** import命令是编译阶段执行的，在代码运行之前。
+>严格模式主要有以下限制。
+
+>变量必须声明后再使用<br>
+- 函数的参数不能有同名属性，否则报错<br>
+- 不能使用with语句<br>
+- 不能对只读属性赋值，否则报错<br>
+- 不能使用前缀0表示八进制数，否则报错<br>
+- 不能删除不可删除的属性，否则报错<br>
+- 不能删除变量delete prop，会报错，只能删除属性delete global[prop]<br>
+- eval不会在它的外层作用域引入变量<br>
+- eval和arguments不能被重新赋值<br>
+- arguments不会自动反映函数参数的变化<br>
+- 不能使用arguments.callee<br>
+- 不能使用arguments.caller<br>
+- 禁止this指向全局对象<br>
+- 不能使用fn.caller和fn.arguments获取函数调用的堆栈<br>
+- 增加了保留字（比如protected、static和interface）<br>
+
 ## 18.1 export的用法
 export可以让我们把变量，函数，对象进行模块化，提供外部调用接口，让外部进行引用
 ```js
@@ -794,8 +838,87 @@ export {
 ```js
 // test.js
 export default var a='jspang';
-// index.js 中 import 形式引入
+// export default 引出函数时，同样不需要花括号
+// index.js 中 import 形式引入 ，注意引用的时候补使用花括号，引入的名字可以指定任意名字
 import str from './temp';
+```
+## 18.6 跨模块常量
+```js
+// constants.js 模块
+export const A = 1;
+export const B = 3;
+export const C = 4;
+
+// test1.js 模块
+import * as constants from './constants';
+console.log(constants.A); // 1
+console.log(constants.B); // 3
+
+// test2.js 模块
+import {A, B} from './constants';
+console.log(A); // 1
+console.log(B); // 3
+```
+## 18.7 import()函数
+```js
+// 1、按需加载
+button.addEventListener('click', event => {
+  import('./dialogBox.js')
+  .then(dialogBox => {
+    dialogBox.open();
+  })
+  .catch(error => {
+    /* Error handling */
+  })
+});
+// 2、条件加载
+if (condition) {
+  import('moduleA').then(...);
+} else {
+  import('moduleB').then(...);
+}
+```
+## 18.8 module的加载实现
+- 加载规则
+浏览器加载 ES6 模块，也使用```<script>```标签，但是要加入type="module"属性。
+```html
+<script type="module" src="foo.js"></script>
+<!-- 浏览器对于带有type="module"的<script>，都是异步加载 -->
+<!-- 等同于 -->
+<script type="module" src="foo.js" defer></script>
+```
+## 18.9 ES6模块加载CommonJS模块
+> CommonJS 模块的输出都定义在module.exports这个属性上面。Node 的import命令加载 CommonJS 模块，Node 会自动将module.exports属性，当作模块的默认输出，即等同于export default xxx。
+```js
+// a.js
+module.exports = {
+  foo: 'hello',
+  bar: 'world'
+};
+
+// 等同于
+export default {
+  foo: 'hello',
+  bar: 'world'
+};
+```
+> import命令加载上面的模块，module.exports会被视为默认输出，即import命令实际上输入的是这样一个对象{ default: module.exports }。
+```js
+// 写法一
+import baz from './a';
+// baz = {foo: 'hello', bar: 'world'};
+
+// 写法二
+import {default as baz} from './a';
+// baz = {foo: 'hello', bar: 'world'};
+
+// 写法三
+import * as baz from './a';
+// baz = {
+//   get default() {return module.exports;},
+//   get foo() {return this.default.foo}.bind(baz),
+//   get bar() {return this.default.bar}.bind(baz)
+// }
 ```
 
 # 19 其他
@@ -829,4 +952,155 @@ var o = {
   }
 };
 ```
+## 19.1 Generator 函数
+- 一、**function**关键字与函数名之间有一个星星
+- 二、函数体内部使用yield表达式【只能在Generator函数】，定义不同的内部状态
+```js
+function* helloGenerator(){
+    yield "hello";
+    yield "world";
+    return "end";
+}
 
+var hw = helloGenerator();
+hw.next(); // { value: 'hello', done: false }
+hw.next(); // { value: 'world', done: false }
+hw.next(); // { value: 'end', done: true }
+hw.next(); // { value: undefined, done: true }
+```
+- 与Iterator接口的关系
+
+由于Generator函数就是遍历器生成函数，因此可以把Generator赋值给对象的Symbol.iteration属性，从而使得该对象具有Iteration
+```js
+var myIterable = {};
+myIterable[Symbol.iterator] = function* () {
+  yield 1;
+  yield 2;
+  yield 3;
+};
+
+[...myIterable] // [1, 2, 3]
+```
+带参数的next方法
+```js
+function* dataConsumer() {
+  console.log('Started');
+  console.log(`1. ${yield}`);
+  console.log(`2. ${yield}`);
+  return 'result';
+}
+
+let genObj = dataConsumer();
+genObj.next();
+// Started
+genObj.next('a')
+// 1. a
+genObj.next('b')
+// 2. b
+```
+用yield* 表达式，在一个迭代器函数里执行另一个迭代器函数
+```js
+function* foo() {
+  yield 'a';
+  yield 'b';
+}
+
+function* bar() {
+  yield 'x';
+  yield* foo();
+  yield 'y';
+}
+
+// 等同于
+function* bar() {
+  yield 'x';
+  yield 'a';
+  yield 'b';
+  yield 'y';
+}
+
+// 等同于
+function* bar() {
+  yield 'x';
+  for (let v of foo()) {
+    yield v;
+  }
+  yield 'y';
+}
+
+for (let v of bar()){
+  console.log(v);
+}
+// "x"
+// "a"
+// "b"
+// "y"
+```
+作为对象属性的Generator函数
+```js
+let obj = {
+  * myGeneratorMethod() {
+    ···
+  }
+};
+```
+## 19.2 aysnc 函数有多种使用形式
+```js
+// 函数声明
+async function foo() {}
+
+// 函数表达式
+const foo = async function () {};
+
+// 对象的方法
+let obj = { async foo() {} };
+obj.foo().then(...)
+
+// Class 的方法
+class Storage {
+  constructor() {
+    this.cachePromise = caches.open('avatars');
+  }
+
+  async getAvatar(name) {
+    const cache = await this.cachePromise;
+    return cache.match(`/avatars/${name}.jpg`);
+  }
+}
+
+const storage = new Storage();
+storage.getAvatar('jake').then(…);
+
+// 箭头函数
+const foo = async () => {};
+```
+**async**函数的语法规则总体上比较简单
+> **async**函数返回一个Promise对象
+```js
+async function f() {
+  try {
+    await new Promise(function (resolve, reject) {
+      throw new Error('出错了');
+    });
+  } catch(e) {
+  }
+  return await('hello world');
+}
+```
+## 19.3 ESLint的使用
+>ESLint是一个语法规则和代码风格的检查工具，可以用来保证写出语法正确、风格统一的代码。
+
+- 首先，安装ESLint。
+```js
+$ npm i -g eslint
+```
+- 然后，安装Airbnb语法规则。
+```js
+$ npm i -g eslint-config-airbnb
+```
+- 最后，在项目的根目录下新建一个.eslintrc文件，配置ESLint。
+```js
+{
+  "extends": "eslint-config-airbnb"
+}
+```
